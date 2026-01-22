@@ -8,6 +8,7 @@ import { FAQ } from "@/components/FAQ";
 import { MobileNav } from "@/components/MobileNav";
 import { PriceAlerts } from "@/components/PriceAlerts";
 import { PriceChart } from "@/components/PriceChart";
+import { SwapWidget } from "@/components/SwapWidget";
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
       <ToolComparison />
       <TokenMetrics />
       <PriceChart />
+      <SwapWidget />
       <Story />
       <UseCases />
       <FAQ />

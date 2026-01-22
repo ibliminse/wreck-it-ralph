@@ -1,31 +1,29 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState } from "react";
 import { createChart, IChartApi, ISeriesApi, LineData, Time, LineSeries } from "lightweight-charts";
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useTokenData, formatPrice } from "@/hooks/useTokenData";
+import { useHistoricalData } from "@/hooks/useHistoricalData";
 import { LINKS } from "@/lib/constants";
-
-interface PricePoint {
-  time: Time;
-  value: number;
-}
 
 function TokenChart({
   variant,
-  price,
-  isLoading,
+  currentPrice,
+  priceLoading,
 }: {
   variant: "wreckit" | "ralph";
-  price: number;
-  isLoading: boolean;
+  currentPrice: number;
+  priceLoading: boolean;
 }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Line"> | null>(null);
-  const priceDataRef = useRef<PricePoint[]>([]);
   const [chartReady, setChartReady] = useState(false);
+  const [timeframe, setTimeframe] = useState("1H");
+
+  const { data: historicalData, loading: historyLoading, error } = useHistoricalData(variant, timeframe);
 
   const color = variant === "wreckit" ? "#f97316" : "#3b82f6";
   const dexLink = variant === "wreckit" ? LINKS.WRECKIT.dexscreener : LINKS.RALPH.dexscreener;
@@ -36,7 +34,7 @@ function TokenChart({
 
     const chart = createChart(chartContainerRef.current, {
       width: chartContainerRef.current.clientWidth,
-      height: 200,
+      height: 220,
       layout: {
         background: { color: "transparent" },
         textColor: "#9ca3af",
@@ -56,17 +54,17 @@ function TokenChart({
         secondsVisible: false,
       },
       crosshair: {
-        horzLine: { visible: false },
+        horzLine: { visible: true, color: "rgba(255,255,255,0.1)" },
         vertLine: { color: "rgba(255,255,255,0.1)" },
       },
-      handleScale: false,
-      handleScroll: false,
+      handleScale: true,
+      handleScroll: true,
     });
 
     const series = chart.addSeries(LineSeries, {
       color,
       lineWidth: 2,
-      priceLineVisible: false,
+      priceLineVisible: true,
       lastValueVisible: true,
       crosshairMarkerVisible: true,
       crosshairMarkerRadius: 4,
@@ -95,22 +93,25 @@ function TokenChart({
     };
   }, [color]);
 
-  // Update data when price changes
+  // Update chart with historical data
   useEffect(() => {
-    if (!seriesRef.current || !chartReady || isLoading || price === 0) return;
+    if (!seriesRef.current || !chartReady || historyLoading) return;
 
-    const now = Math.floor(Date.now() / 1000) as Time;
-    const newPoint: PricePoint = { time: now, value: price };
+    if (historicalData.length > 0) {
+      const chartData: LineData[] = historicalData.map((item) => ({
+        time: item.time as Time,
+        value: item.value,
+      }));
 
-    // Add to our data array
-    priceDataRef.current = [...priceDataRef.current, newPoint].slice(-100); // Keep last 100 points
+      seriesRef.current.setData(chartData);
+      chartRef.current?.timeScale().fitContent();
+    }
+  }, [historicalData, chartReady, historyLoading]);
 
-    // Update the chart
-    seriesRef.current.setData(priceDataRef.current as LineData[]);
-
-    // Fit content
-    chartRef.current?.timeScale().fitContent();
-  }, [price, chartReady, isLoading]);
+  // Calculate 24h change from historical data
+  const priceChange = historicalData.length > 1
+    ? ((historicalData[historicalData.length - 1]?.value - historicalData[0]?.value) / historicalData[0]?.value) * 100
+    : 0;
 
   return (
     <div className="card p-4">
@@ -123,27 +124,58 @@ function TokenChart({
           <span className="font-semibold text-[var(--text-primary)]">
             {variant === "wreckit" ? "$WRECKIT" : "$RALPH"}
           </span>
-        </div>
-        <div className="flex items-center gap-3">
-          {!isLoading && price > 0 && (
+          {!priceLoading && currentPrice > 0 && (
             <span className="text-sm font-mono text-[var(--text-secondary)]">
-              {formatPrice(price)}
+              {formatPrice(currentPrice)}
             </span>
           )}
+          {historicalData.length > 1 && (
+            <span
+              className={`text-xs font-medium ${
+                priceChange >= 0 ? "text-[var(--accent-success)]" : "text-[var(--accent-error)]"
+              }`}
+            >
+              {priceChange >= 0 ? "+" : ""}{priceChange.toFixed(2)}%
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Timeframe selector */}
+          <select
+            value={timeframe}
+            onChange={(e) => setTimeframe(e.target.value)}
+            className="text-xs bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded px-2 py-1 text-[var(--text-secondary)]"
+          >
+            <option value="15m">15m</option>
+            <option value="1H">1H</option>
+            <option value="4H">4H</option>
+            <option value="1D">1D</option>
+          </select>
           <a
             href={dexLink}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
-            Full chart →
+            DexScreener →
           </a>
         </div>
       </div>
+
       <div ref={chartContainerRef} className="w-full" />
-      {priceDataRef.current.length < 3 && (
-        <div className="text-center text-xs text-[var(--text-muted)] mt-2">
-          Collecting live data...
+
+      {historyLoading && (
+        <div className="flex items-center justify-center h-[220px]">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin" style={{ color }} />
+            <span className="text-xs text-[var(--text-muted)]">Loading chart...</span>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="text-center text-xs text-[var(--accent-error)] mt-2">
+          {error}
         </div>
       )}
     </div>
@@ -172,10 +204,10 @@ export function PriceChart() {
             className="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--text-primary)] mb-4"
             style={{ fontFamily: "var(--font-space-grotesk)" }}
           >
-            Live Price Charts
+            Price Charts
           </h2>
           <p className="text-lg text-[var(--text-secondary)] max-w-2xl mx-auto">
-            Real-time price updates as they happen. Click "Full chart" for historical data on DexScreener.
+            24-hour price history powered by Birdeye. Select timeframe for different views.
           </p>
         </motion.div>
 
@@ -187,13 +219,13 @@ export function PriceChart() {
         >
           <TokenChart
             variant="wreckit"
-            price={wreckit?.price || 0}
-            isLoading={loading}
+            currentPrice={wreckit?.price || 0}
+            priceLoading={loading}
           />
           <TokenChart
             variant="ralph"
-            price={ralph?.price || 0}
-            isLoading={loading}
+            currentPrice={ralph?.price || 0}
+            priceLoading={loading}
           />
         </motion.div>
 
@@ -203,7 +235,7 @@ export function PriceChart() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-center text-xs text-[var(--text-muted)] mt-6"
         >
-          Charts show live price movements during your session. Historical data available on DexScreener.
+          Data from Birdeye API • Updates every 5 minutes
         </motion.p>
       </div>
     </section>
