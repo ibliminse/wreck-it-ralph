@@ -275,3 +275,53 @@ body {
   outline: 2px solid var(--wreckit-primary);
   outline-offset: 2px;
 }
+
+/* Light mode */
+html.light {
+  --bg-deep: #fafafa;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f4f4f5;
+  --bg-hover: #e4e4e7;
+
+  --text-primary: #09090b;
+  --text-secondary: #52525b;
+  --text-muted: #71717a;
+  --text-dim: #a1a1aa;
+
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-default: rgba(0, 0, 0, 0.1);
+  --border-strong: rgba(0, 0, 0, 0.15);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+}
+
+html.light .glass {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+html.light .btn-wreckit {
+  color: white;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+
+html.light ::selection {
+  background: var(--wreckit-primary);
+  color: white;
+}
+
+/* Safe area for mobile nav */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Add bottom padding to body on mobile for fixed nav */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 80px;
+  }
+}

@@ -277,20 +277,20 @@ export function TokenMetrics() {
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
           <a
-            href={LINKS.WRECKIT.dexscreener}
+            href={LINKS.WRECKIT.trade}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-wreckit"
           >
-            Trade $WRECKIT on DexScreener
+            Trade $WRECKIT
           </a>
           <a
-            href={LINKS.RALPH.dexscreener}
+            href={LINKS.RALPH.trade}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-ralph"
           >
-            Trade $RALPH on DexScreener
+            Trade $RALPH
           </a>
         </motion.div>
       </div>

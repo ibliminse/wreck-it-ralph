@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import { useTokenData, formatPrice, formatLargeNumber, formatPercentage } from "@/hooks/useTokenData";
 import { AnimatedNumber } from "./AnimatedNumber";
-import { LINKS } from "@/lib/constants";
+import { CopyButton } from "./CopyButton";
+import { LINKS, TOKENS } from "@/lib/constants";
 
 function MetricCard({
   label,
@@ -11,6 +12,7 @@ function MetricCard({
   format,
   change,
   variant = "neutral",
+  loading = false,
   delay = 0,
 }: {
   label: string;
@@ -18,30 +20,35 @@ function MetricCard({
   format: (n: number) => string;
   change?: number;
   variant?: "wreckit" | "ralph" | "neutral";
+  loading?: boolean;
   delay?: number;
 }) {
   const bgClass =
     variant === "wreckit"
-      ? "bg-[var(--wreckit-subtle)] border-[var(--wreckit-primary)]/20"
+      ? "bg-[var(--wreckit-subtle)] border-[var(--wreckit-primary)]/20 hover:border-[var(--wreckit-primary)]/40"
       : variant === "ralph"
-      ? "bg-[var(--ralph-subtle)] border-[var(--ralph-primary)]/20"
-      : "bg-[var(--bg-surface)] border-[var(--border-subtle)]";
+      ? "bg-[var(--ralph-subtle)] border-[var(--ralph-primary)]/20 hover:border-[var(--ralph-primary)]/40"
+      : "bg-[var(--bg-surface)] border-[var(--border-subtle)] hover:border-[var(--border-default)]";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
-      className={`p-4 md:p-5 rounded-xl border ${bgClass} backdrop-blur-sm`}
+      className={`p-4 md:p-5 rounded-xl border ${bgClass} backdrop-blur-sm transition-colors`}
     >
       <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
         {label}
       </div>
       <div className="flex items-baseline gap-2">
-        <span className="text-xl md:text-2xl font-semibold data-value">
-          <AnimatedNumber value={value} format={format} />
-        </span>
-        {change !== undefined && (
+        {loading ? (
+          <div className="h-7 w-20 bg-[var(--bg-elevated)] rounded animate-pulse" />
+        ) : (
+          <span className="text-xl md:text-2xl font-semibold data-value">
+            <AnimatedNumber value={value} format={format} />
+          </span>
+        )}
+        {change !== undefined && !loading && (
           <span
             className={`text-sm font-medium ${
               change >= 0 ? "text-[var(--accent-success)]" : "text-[var(--accent-error)]"
@@ -55,12 +62,35 @@ function MetricCard({
   );
 }
 
+function TokenLogo({ variant }: { variant: "wreckit" | "ralph" }) {
+  const isWreckit = variant === "wreckit";
+  const logoUrl = isWreckit ? TOKENS.WRECKIT.logo : TOKENS.RALPH.logo;
+
+  return (
+    <div
+      className={`w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden border-2 ${
+        isWreckit
+          ? "border-[var(--wreckit-primary)]/30"
+          : "border-[var(--ralph-primary)]/30"
+      }`}
+    >
+      <img
+        src={logoUrl}
+        alt={isWreckit ? "WRECKIT" : "RALPH"}
+        className="w-full h-full object-cover"
+      />
+    </div>
+  );
+}
+
 function TokenHeader({
   name,
   symbol,
   price,
   change,
   variant,
+  address,
+  loading,
   delay = 0,
 }: {
   name: string;
@@ -68,10 +98,11 @@ function TokenHeader({
   price: number;
   change: number;
   variant: "wreckit" | "ralph";
+  address: string;
+  loading?: boolean;
   delay?: number;
 }) {
   const gradientClass = variant === "wreckit" ? "text-gradient-wreckit" : "text-gradient-ralph";
-  const glowClass = variant === "wreckit" ? "glow-wreckit" : "glow-ralph";
 
   return (
     <motion.div
@@ -80,37 +111,51 @@ function TokenHeader({
       transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
       className="text-center"
     >
-      <div
-        className={`inline-block px-4 py-1.5 rounded-full border ${
-          variant === "wreckit"
-            ? "border-[var(--wreckit-primary)]/30 bg-[var(--wreckit-subtle)]"
-            : "border-[var(--ralph-primary)]/30 bg-[var(--ralph-subtle)]"
-        } mb-3`}
-      >
-        <span className="text-xs font-medium text-[var(--text-muted)]">
-          {variant === "wreckit" ? "The Evolution" : "The Pioneer"}
-        </span>
+      <div className="flex items-center justify-center gap-3 mb-3">
+        <TokenLogo variant={variant} />
+        <div className="text-left">
+          <div
+            className={`inline-block px-2.5 py-0.5 rounded-full border text-[10px] ${
+              variant === "wreckit"
+                ? "border-[var(--wreckit-primary)]/30 bg-[var(--wreckit-subtle)]"
+                : "border-[var(--ralph-primary)]/30 bg-[var(--ralph-subtle)]"
+            } mb-1`}
+          >
+            <span className="font-medium text-[var(--text-muted)]">
+              {variant === "wreckit" ? "The Evolution" : "The Pioneer"}
+            </span>
+          </div>
+          <h2
+            className={`text-2xl md:text-3xl font-bold ${gradientClass}`}
+            style={{ fontFamily: "var(--font-space-grotesk)" }}
+          >
+            {symbol}
+          </h2>
+        </div>
       </div>
 
-      <h2
-        className={`text-3xl md:text-4xl lg:text-5xl font-bold ${gradientClass} mb-2`}
-        style={{ fontFamily: "var(--font-space-grotesk)" }}
-      >
-        {symbol}
-      </h2>
-
-      <div className="flex items-center justify-center gap-3">
-        <span className="text-2xl md:text-3xl font-semibold data-value">
-          <AnimatedNumber value={price} format={formatPrice} />
-        </span>
-        <span
-          className={`text-lg font-medium ${
-            change >= 0 ? "text-[var(--accent-success)]" : "text-[var(--accent-error)]"
-          }`}
-        >
-          {formatPercentage(change)}
-        </span>
+      <div className="flex items-center justify-center gap-3 mb-2">
+        {loading ? (
+          <div className="h-8 w-24 bg-[var(--bg-elevated)] rounded animate-pulse" />
+        ) : (
+          <span className="text-2xl md:text-3xl font-semibold data-value">
+            <AnimatedNumber value={price} format={formatPrice} />
+          </span>
+        )}
+        {loading ? (
+          <div className="h-6 w-16 bg-[var(--bg-elevated)] rounded animate-pulse" />
+        ) : (
+          <span
+            className={`text-lg font-medium ${
+              change >= 0 ? "text-[var(--accent-success)]" : "text-[var(--accent-error)]"
+            }`}
+          >
+            {formatPercentage(change)}
+          </span>
+        )}
       </div>
+
+      <CopyButton text={address} />
     </motion.div>
   );
 }
@@ -175,6 +220,8 @@ export function Hero() {
               price={wreckit?.price || 0}
               change={wreckit?.priceChange24h || 0}
               variant="wreckit"
+              address={TOKENS.WRECKIT.address}
+              loading={loading}
               delay={0.3}
             />
 
@@ -184,6 +231,7 @@ export function Hero() {
                 value={wreckit?.marketCap || 0}
                 format={formatLargeNumber}
                 variant="wreckit"
+                loading={loading}
                 delay={0.4}
               />
               <MetricCard
@@ -191,6 +239,7 @@ export function Hero() {
                 value={wreckit?.volume24h || 0}
                 format={formatLargeNumber}
                 variant="wreckit"
+                loading={loading}
                 delay={0.45}
               />
               <MetricCard
@@ -198,6 +247,7 @@ export function Hero() {
                 value={wreckit?.liquidity || 0}
                 format={formatLargeNumber}
                 variant="wreckit"
+                loading={loading}
                 delay={0.5}
               />
               <MetricCard
@@ -205,6 +255,7 @@ export function Hero() {
                 value={(wreckit?.txns24h.buys || 0) + (wreckit?.txns24h.sells || 0)}
                 format={(n) => n.toLocaleString()}
                 variant="wreckit"
+                loading={loading}
                 delay={0.55}
               />
             </div>
@@ -216,7 +267,7 @@ export function Hero() {
               className="flex gap-3"
             >
               <a
-                href={LINKS.WRECKIT.dexscreener}
+                href={LINKS.WRECKIT.trade}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-wreckit flex-1"
@@ -247,6 +298,8 @@ export function Hero() {
               price={ralph?.price || 0}
               change={ralph?.priceChange24h || 0}
               variant="ralph"
+              address={TOKENS.RALPH.address}
+              loading={loading}
               delay={0.3}
             />
 
@@ -256,6 +309,7 @@ export function Hero() {
                 value={ralph?.marketCap || 0}
                 format={formatLargeNumber}
                 variant="ralph"
+                loading={loading}
                 delay={0.4}
               />
               <MetricCard
@@ -263,6 +317,7 @@ export function Hero() {
                 value={ralph?.volume24h || 0}
                 format={formatLargeNumber}
                 variant="ralph"
+                loading={loading}
                 delay={0.45}
               />
               <MetricCard
@@ -270,6 +325,7 @@ export function Hero() {
                 value={ralph?.liquidity || 0}
                 format={formatLargeNumber}
                 variant="ralph"
+                loading={loading}
                 delay={0.5}
               />
               <MetricCard
@@ -277,6 +333,7 @@ export function Hero() {
                 value={(ralph?.txns24h.buys || 0) + (ralph?.txns24h.sells || 0)}
                 format={(n) => n.toLocaleString()}
                 variant="ralph"
+                loading={loading}
                 delay={0.55}
               />
             </div>
@@ -288,7 +345,7 @@ export function Hero() {
               className="flex gap-3"
             >
               <a
-                href={LINKS.RALPH.dexscreener}
+                href={LINKS.RALPH.trade}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-ralph flex-1"

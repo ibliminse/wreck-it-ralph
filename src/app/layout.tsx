@@ -1,5 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import "./globals.css";
 
 const inter = Inter({
@@ -20,34 +23,33 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#f97316",
+};
+
 export const metadata: Metadata = {
   title: "WRECKIT & RALPH | AI Coding Agents",
   description: "RALPH started the AI coding revolution. WRECKIT is where it's heading. Live token data, tool comparison, and the evolution of autonomous coding agents.",
   keywords: ["WRECKIT", "RALPH", "AI coding", "autonomous agents", "Claude", "Solana", "meme coin"],
   authors: [{ name: "WRECKIT" }],
+  metadataBase: new URL("https://wreckitlore.xyz"),
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "WRECKIT",
+  },
   openGraph: {
     title: "WRECKIT & RALPH | AI Coding Agents",
     description: "RALPH started the AI coding revolution. WRECKIT is where it's heading.",
-    url: "https://wreckit-ralph.vercel.app",
-    siteName: "WRECKIT-RALPH",
+    url: "https://wreckitlore.xyz",
+    siteName: "WRECKIT vs RALPH",
     type: "website",
-    images: [
-      {
-        url: "https://i.imgur.com/YqRvGZK.png",
-        width: 1200,
-        height: 630,
-        alt: "WRECKIT & RALPH",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "WRECKIT & RALPH | AI Coding Agents",
     description: "RALPH started the AI coding revolution. WRECKIT is where it's heading.",
-    images: ["https://i.imgur.com/YqRvGZK.png"],
-  },
-  icons: {
-    icon: "/favicon.ico",
   },
 };
 
@@ -65,6 +67,9 @@ export default function RootLayout({
         }}
       >
         {children}
+        <GoogleAnalytics />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

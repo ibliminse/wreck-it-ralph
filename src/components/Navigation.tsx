@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LINKS } from "@/lib/constants";
+import { ThemeToggle } from "./ThemeToggle";
 
 const navItems = [
   { label: "Tools", href: "#tools" },
   { label: "Tokens", href: "#tokens" },
+  { label: "Charts", href: "#charts" },
   { label: "Story", href: "#story" },
   { label: "Use Cases", href: "#use-cases" },
+  { label: "FAQ", href: "#faq" },
 ];
 
 export function Navigation() {
@@ -71,8 +74,10 @@ export function Navigation() {
                 <span className="text-xs text-[var(--text-muted)]">Live</span>
               </div>
 
+              <ThemeToggle />
+
               <a
-                href={LINKS.WRECKIT.dexscreener}
+                href={LINKS.WRECKIT.trade}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-wreckit ml-2"
@@ -151,7 +156,7 @@ export function Navigation() {
                 <div className="h-px bg-[var(--border-subtle)] my-4" />
 
                 <a
-                  href={LINKS.WRECKIT.dexscreener}
+                  href={LINKS.WRECKIT.trade}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-wreckit w-full justify-center"
