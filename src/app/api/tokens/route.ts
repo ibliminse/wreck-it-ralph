@@ -24,12 +24,15 @@ interface TokenData {
   };
 }
 
+// In-memory cache for last known good values
+const cache: { [key: string]: { data: TokenData; timestamp: number } } = {};
+const CACHE_TTL = 60000; // 1 minute
+
 async function fetchFromBirdeye(address: string): Promise<TokenData | null> {
   const apiKey = process.env.BIRDEYE_API_KEY;
   if (!apiKey) return null;
 
   try {
-    // Fetch token overview from Birdeye
     const response = await fetch(
       `${BIRDEYE_API}/defi/token_overview?address=${address}`,
       {
@@ -42,14 +45,13 @@ async function fetchFromBirdeye(address: string): Promise<TokenData | null> {
     );
 
     if (!response.ok) {
-      console.error(`Birdeye fetch failed for ${address}: ${response.status}`);
       return null;
     }
 
     const data = await response.json();
     const token = data.data;
 
-    if (!token) return null;
+    if (!token || !token.price) return null;
 
     return {
       price: token.price || 0,
@@ -63,8 +65,7 @@ async function fetchFromBirdeye(address: string): Promise<TokenData | null> {
         sells: token.sell24h || 0,
       },
     };
-  } catch (error) {
-    console.error(`Birdeye error for ${address}:`, error);
+  } catch {
     return null;
   }
 }
@@ -80,7 +81,7 @@ async function fetchFromDexScreener(address: string): Promise<TokenData | null> 
     const data = await response.json();
     const pair = data.pairs?.[0];
 
-    if (!pair) return null;
+    if (!pair || !pair.priceUsd) return null;
 
     return {
       price: parseFloat(pair.priceUsd) || 0,
@@ -94,42 +95,69 @@ async function fetchFromDexScreener(address: string): Promise<TokenData | null> 
         sells: pair.txns?.h24?.sells || 0,
       },
     };
-  } catch (error) {
-    console.error(`DexScreener error for ${address}:`, error);
+  } catch {
     return null;
   }
 }
 
-async function fetchTokenData(address: string): Promise<TokenData | null> {
-  // Try Birdeye first
-  const birdeyeData = await fetchFromBirdeye(address);
-  if (birdeyeData && birdeyeData.price > 0) {
-    return birdeyeData;
+function isValidData(data: TokenData | null): data is TokenData {
+  return data !== null && data.price > 0 && data.marketCap > 0;
+}
+
+async function fetchTokenData(address: string, tokenName: string): Promise<TokenData | null> {
+  // Try both APIs in parallel
+  const [birdeyeData, dexData] = await Promise.all([
+    fetchFromBirdeye(address),
+    fetchFromDexScreener(address),
+  ]);
+
+  // Prefer Birdeye if valid, otherwise use DexScreener
+  let result: TokenData | null = null;
+
+  if (isValidData(birdeyeData)) {
+    result = birdeyeData;
+  } else if (isValidData(dexData)) {
+    result = dexData;
   }
 
-  // Fallback to DexScreener
-  console.log(`Falling back to DexScreener for ${address}`);
-  return fetchFromDexScreener(address);
+  // If we got valid data, update cache
+  if (result) {
+    cache[tokenName] = { data: result, timestamp: Date.now() };
+    return result;
+  }
+
+  // If no fresh data, use cache if not too old
+  const cached = cache[tokenName];
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+
+  // Last resort: return whatever we got, even if incomplete
+  return birdeyeData || dexData || cached?.data || null;
 }
 
 export async function GET() {
   try {
+    // Fetch both tokens independently so one failing doesn't affect the other
     const [wreckitData, ralphData] = await Promise.all([
-      fetchTokenData(TOKENS.WRECKIT),
-      fetchTokenData(TOKENS.RALPH),
+      fetchTokenData(TOKENS.WRECKIT, "wreckit"),
+      fetchTokenData(TOKENS.RALPH, "ralph"),
     ]);
 
     return NextResponse.json({
       wreckit: wreckitData,
       ralph: ralphData,
-      source: wreckitData ? "birdeye" : "dexscreener",
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error("Token fetch error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch token data", details: String(error) },
-      { status: 500 }
-    );
+
+    // Return cached data if available
+    return NextResponse.json({
+      wreckit: cache["wreckit"]?.data || null,
+      ralph: cache["ralph"]?.data || null,
+      timestamp: new Date().toISOString(),
+      cached: true,
+    });
   }
 }
