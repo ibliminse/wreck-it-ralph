@@ -6,46 +6,46 @@
    ============================================= */
 
 :root {
-  /* Background layers */
+  /* Background layers (60% - dark tones) */
   --bg-deep: #0f0f1a;
   --bg-surface: #1c191c;
   --bg-elevated: #231a38;
   --bg-hover: #2d2445;
 
-  /* WRECKIT - gold (primary) */
+  /* WRECKIT - gold (7% - primary accent) */
   --wreckit-primary: #ffd700;
   --wreckit-muted: #e6c200;
   --wreckit-subtle: rgba(255, 215, 0, 0.1);
-  --wreckit-glow: rgba(255, 215, 0, 0.15);
+  --wreckit-glow: rgba(255, 215, 0, 0.25);
 
-  /* RALPH - coral red (secondary) */
+  /* RALPH - coral red (3% - secondary accent) */
   --ralph-primary: #ff534e;
   --ralph-muted: #e64a45;
   --ralph-subtle: rgba(255, 83, 78, 0.1);
-  --ralph-glow: rgba(255, 83, 78, 0.15);
+  --ralph-glow: rgba(255, 83, 78, 0.25);
 
-  /* Accent - purple for data/success */
+  /* Accent states */
   --accent-data: #231a38;
   --accent-success: #ffd700;
   --accent-error: #ff534e;
 
-  /* Text */
+  /* Text hierarchy */
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
   --text-muted: #71717a;
   --text-dim: #52525b;
 
-  /* Borders */
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-default: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(255, 255, 255, 0.15);
+  /* Borders (30% - UI elements use elevated purple) */
+  --border-subtle: rgba(35, 26, 56, 0.5);
+  --border-default: rgba(35, 26, 56, 0.8);
+  --border-strong: #231a38;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
-  --shadow-glow-wreckit: 0 0 40px var(--wreckit-glow);
-  --shadow-glow-ralph: 0 0 40px var(--ralph-glow);
+  --shadow-glow-wreckit: 0 0 30px var(--wreckit-glow), 0 0 60px var(--wreckit-glow);
+  --shadow-glow-ralph: 0 0 30px var(--ralph-glow), 0 0 60px var(--ralph-glow);
 
   /* Spacing scale */
   --space-xs: 4px;
@@ -136,24 +136,24 @@ body {
 
 /* Glass effect */
 .glass {
-  background: rgba(24, 24, 27, 0.7);
+  background: rgba(28, 25, 28, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-strong);
 }
 
 /* Card styles */
 .card {
   background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
   transition: all var(--duration-normal) var(--ease-out);
 }
 
 .card:hover {
-  border-color: var(--border-default);
+  border-color: var(--wreckit-primary);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-md), 0 0 20px var(--wreckit-subtle);
 }
 
 /* Button base */
@@ -266,8 +266,8 @@ body {
 
 /* Selection */
 ::selection {
-  background: var(--wreckit-subtle);
-  color: var(--text-primary);
+  background: var(--wreckit-primary);
+  color: var(--bg-deep);
 }
 
 /* Focus styles */
