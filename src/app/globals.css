@@ -7,27 +7,27 @@
 
 :root {
   /* Background layers */
-  --bg-deep: #09090b;
-  --bg-surface: #18181b;
-  --bg-elevated: #27272a;
-  --bg-hover: #3f3f46;
+  --bg-deep: #0f0f1a;
+  --bg-surface: #1c191c;
+  --bg-elevated: #231a38;
+  --bg-hover: #2d2445;
 
-  /* WRECKIT - warm amber/orange (muted) */
-  --wreckit-primary: #f59e0b;
-  --wreckit-muted: #d97706;
-  --wreckit-subtle: rgba(245, 158, 11, 0.1);
-  --wreckit-glow: rgba(245, 158, 11, 0.15);
+  /* WRECKIT - gold (primary) */
+  --wreckit-primary: #ffd700;
+  --wreckit-muted: #e6c200;
+  --wreckit-subtle: rgba(255, 215, 0, 0.1);
+  --wreckit-glow: rgba(255, 215, 0, 0.15);
 
-  /* RALPH - cool indigo/purple (muted) */
-  --ralph-primary: #8b5cf6;
-  --ralph-muted: #7c3aed;
-  --ralph-subtle: rgba(139, 92, 246, 0.1);
-  --ralph-glow: rgba(139, 92, 246, 0.15);
+  /* RALPH - coral red (secondary) */
+  --ralph-primary: #ff534e;
+  --ralph-muted: #e64a45;
+  --ralph-subtle: rgba(255, 83, 78, 0.1);
+  --ralph-glow: rgba(255, 83, 78, 0.15);
 
-  /* Accent - cyan for data/success */
-  --accent-data: #06b6d4;
-  --accent-success: #10b981;
-  --accent-error: #ef4444;
+  /* Accent - purple for data/success */
+  --accent-data: #231a38;
+  --accent-success: #ffd700;
+  --accent-error: #ff534e;
 
   /* Text */
   --text-primary: #fafafa;
